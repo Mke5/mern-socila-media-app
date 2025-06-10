@@ -26,7 +26,7 @@ const userSchema = new Schema({
         required: true,
         minlength: 8,
         maxlength: 100,
-        select: false, // Exclude password from queries by default
+        select: true, // Exclude password from queries by default
     },
     profilePicture: {
         type: String,

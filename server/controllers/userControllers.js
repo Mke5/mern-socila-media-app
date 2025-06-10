@@ -1,7 +1,7 @@
 const HttpError = require('../models/errorModel')
 const userModel = require('../models/userModel')
 const bcrypt = require('bcryptjs')
-
+const jwt = require('jsonwebtoken')
 
 
 // register user
@@ -59,9 +59,13 @@ const loginUser = async (req, res, next) => {
             return next(new HttpError('Invalid Credentials', 422))
         }
         if(!await bcrypt.compare(password, user.password)){
-            console.log(user)
-
+            return next(new HttpError('Invalid credentials', 422))
         }
+
+        const token = await jwt.sign({id: user._id}, process.env.JWT_SECRET,{
+            expiresIn: '2d'
+        })
+        res.json({token, email: user.email}).status(200)
     } catch (error) {
         return next(new HttpError(error.message, error.statusCode))
     }
@@ -75,7 +79,42 @@ const loginUser = async (req, res, next) => {
 // unprotected route
 const getUser = async (req, res, next) => {
     try {
-        res.json('get User Profile User')
+        if(!req.params){
+            return next(new HttpError('No data provided', 400))
+        }
+        const {id} = req.params
+        const user = await userModel.findBy(id)
+        if(!user || user === ''){
+            return next(new HttpError('User not found', 404))
+        }
+        res.json(user).status(200)
+    } catch (error) {
+        return next(new HttpError(error.message, error.statusCode))
+    }
+}
+
+
+
+
+
+
+
+
+
+// get user
+// POST : /api/users/:id
+// unprotected route
+const getUser = async (req, res, next) => {
+    try {
+        if(!req.params){
+            return next(new HttpError('No data provided', 400))
+        }
+        const {id} = req.params
+        const user = await userModel.findBy(id)
+        if(!user || user === ''){
+            return next(new HttpError('User not found', 404))
+        }
+        res.json(user).status(200)
     } catch (error) {
         return next(new HttpError(error.message, error.statusCode))
     }
