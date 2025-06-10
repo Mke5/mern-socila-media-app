@@ -10,10 +10,7 @@ const errorHandler = (error, req, res, next) => {
     if(res.headerSent){
         return next(error)
     }
-
-    res.status(error.statusCode).json({
-        message: error.message
-    })
+    res.status(error.statusCode || 500).json({message: error.message || "An unknown error occurred"})
 }
 
 

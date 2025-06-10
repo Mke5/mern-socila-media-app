@@ -4,6 +4,7 @@ require('dotenv').config()
 const cors = require('cors')
 const upload = require('express-fileupload')
 const { notFound, errorHandler } = require('./middlewares/errorMiddleware')
+const routes = require('./routes/routes')
 
 
 const app = express()
@@ -19,6 +20,8 @@ app.use(express.urlencoded({
     extended: true
 }))
 app.use(upload())
+
+app.use('/api', routes)
 
 app.use(notFound)
 app.use(errorHandler)

@@ -4,7 +4,7 @@ const { Schema, model } = require('mongoose')
 
 
 const userSchema = new Schema({
-    fullNmae: {
+    fullName: {
         type: String, 
         required: true,
         trim: true,
@@ -73,4 +73,4 @@ const userSchema = new Schema({
 
 
 
-modules.exports = model('User', userSchema, )
+module.exports = model('User', userSchema, )
