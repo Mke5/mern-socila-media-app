@@ -82,12 +82,39 @@ const getUser = async (req, res, next) => {
         if(!req.params){
             return next(new HttpError('No data provided', 400))
         }
-        const {id} = req.params
-        const user = await userModel.findBy(id)
-        if(!user || user === ''){
-            return next(new HttpError('User not found', 404))
+        const { name, email, currentPassword, newPassword, confirmPassword } = req.body;
+
+        if (!name || !email || !currentPassword || !newPassword || !confirmPassword) {
+            return next(new HttpError('Fill all fields!', 422));
         }
-        res.json(user).status(200)
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return next(new HttpError('User not found', 404));
+        }
+        if (user.email !== email) {
+            const emailExists = await User.findOne({ email });
+            if (emailExists) {
+                return next(new HttpError('Email already in use by another account', 409));
+            }
+        }
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return next(new HttpError('Incorrect current password', 401));
+        }
+        if (newPassword !== confirmPassword) {
+            return next(new HttpError('New passwords do not match', 422));
+        }
+        const salt = await bcrypt.genSalt(12);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        user.name = name;
+        user.email = email;
+        user.password = hashedPassword;
+
+        await user.save();
+
+        res.status(200).json({ message: 'User updated successfully' });
     } catch (error) {
         return next(new HttpError(error.message, error.statusCode))
     }
@@ -101,20 +128,16 @@ const getUser = async (req, res, next) => {
 
 
 
-// get user
+// get users
 // POST : /api/users/:id
 // unprotected route
-const getUser = async (req, res, next) => {
+const getUsers = async (req, res, next) => {
     try {
-        if(!req.params){
-            return next(new HttpError('No data provided', 400))
+        const users = await userModel.find().limit(10).sort({createdAt: -1}).select('-password')
+        if(!users){
+            return next(new HttpError('No users yet', 404))
         }
-        const {id} = req.params
-        const user = await userModel.findBy(id)
-        if(!user || user === ''){
-            return next(new HttpError('User not found', 404))
-        }
-        res.json(user).status(200)
+        res.json(users).status(200)
     } catch (error) {
         return next(new HttpError(error.message, error.statusCode))
     }
@@ -128,7 +151,11 @@ const getUser = async (req, res, next) => {
 // unprotected route
 const editUser = async (req, res, next) => {
     try {
-        res.json('edit User')
+        if(!req.body){
+            return next(new HttpError('No data provided', 400))
+        }
+        const {fullName, bio} = req.body
+
     } catch (error) {
         return next(new HttpError(error.message, error.statusCode))
     }
@@ -174,5 +201,6 @@ module.exports = {
     loginUser,
     getUser,
     editUser,
+    getUsers,
     followUnfollowUser,
 }
