@@ -82,6 +82,51 @@ const getUser = async (req, res, next) => {
         if(!req.params){
             return next(new HttpError('No data provided', 400))
         }
+        const {id} = req.params
+        const user = await userModel.findBy(id).select('-password')
+        if(!user || user === ''){
+            return next(new HttpError('User not found', 404))
+        }
+        res.json(user).status(200)
+    } catch (error) {
+        return next(new HttpError(error.message, error.statusCode))
+    }
+}
+
+
+
+
+
+
+
+
+
+// get users
+// POST : /api/users/:id
+// unprotected route
+const getUsers = async (req, res, next) => {
+    try {
+        const users = await userModel.find().limit(10).sort({createdAt: -1}).select('-password')
+        if(!users){
+            return next(new HttpError('No users yet', 404))
+        }
+        res.json(users).status(200)
+    } catch (error) {
+        return next(new HttpError(error.message, error.statusCode))
+    }
+}
+
+
+
+
+// edit user
+// POST : /api/users/edit
+// unprotected route
+const editUser = async (req, res, next) => {
+    try {
+        if(!req.body){
+            return next(new HttpError('No data provided', 400))
+        }
         const { name, email, currentPassword, newPassword, confirmPassword } = req.body;
 
         if (!name || !email || !currentPassword || !newPassword || !confirmPassword) {
@@ -125,47 +170,6 @@ const getUser = async (req, res, next) => {
 
 
 
-
-
-
-// get users
-// POST : /api/users/:id
-// unprotected route
-const getUsers = async (req, res, next) => {
-    try {
-        const users = await userModel.find().limit(10).sort({createdAt: -1}).select('-password')
-        if(!users){
-            return next(new HttpError('No users yet', 404))
-        }
-        res.json(users).status(200)
-    } catch (error) {
-        return next(new HttpError(error.message, error.statusCode))
-    }
-}
-
-
-
-
-// edit user
-// POST : /api/users/edit
-// unprotected route
-const editUser = async (req, res, next) => {
-    try {
-        if(!req.body){
-            return next(new HttpError('No data provided', 400))
-        }
-        const {fullName, bio} = req.body
-
-    } catch (error) {
-        return next(new HttpError(error.message, error.statusCode))
-    }
-}
-
-
-
-
-
-
 // follow/unfollow user
 // PATCH : /api/users/:id/follow
 // unprotected route
@@ -185,7 +189,51 @@ const followUnfollowUser = async (req, res, next) => {
 // unprotected route
 const changeUserAvatar = async (req, res, next) => {
     try {
-        res.json('change profile picture User')
+        if(!req.user || !req.user.id){
+            return next(new HttpError('Cannot identify user', 401))
+        }
+
+        if(!req.files){
+            return next(new HttpError('PLease choose an image', 422))
+        }
+
+        const user = await User.findById(req.user.id)
+        if (!user) {
+            return next(new HttpError('User not found', 404));
+        }
+        if(user.avatar){
+            fs.unlink(path.join(__dirname, '..', 'uploads', user.avatar), (err) => {
+                if(err){
+                    return next(new HttpError(err, err.statusCode))
+                }
+            })
+        }
+
+        const {avatar} = req.files
+        if(avatar.size > 500000){
+            return next(new HttpError('file size greater than 500kb', 422))
+        }
+
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(avatar.mimetype)) {
+            return next(new HttpError('Only image files are allowed (jpeg, png, gif, webp)', 422));
+        }
+
+        const fileExt = path.extname(avatar.name);
+        const safeBaseName = path.basename(avatar.name, fileExt).replace(/[^a-zA-Z0-9_-]/g, '');
+        const newFileName = `${safeBaseName}-${uuid()}${fileExt}`;
+        const uploadPath = path.join(__dirname, '..', 'uploads', newFileName);
+
+        avatar.mv(uploadPath, async (err) => {
+            if (err) {
+                return next(new HttpError('Failed to upload image', 500));
+            }
+
+            user.avatar = newFileName;
+            await user.save();
+
+            res.status(200).json({ message: 'Avatar updated successfully', avatar: newFileName });
+        });
     } catch (error) {
         return next(new HttpError(error.message, error.statusCode))
     }
