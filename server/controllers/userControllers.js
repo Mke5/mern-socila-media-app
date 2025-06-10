@@ -175,7 +175,51 @@ const editUser = async (req, res, next) => {
 // unprotected route
 const followUnfollowUser = async (req, res, next) => {
     try {
-        res.json('follow User')
+        if(!req.params.id){
+            return next(new HttpError('No data provided', 400))
+        }
+        const userToFollow = req.params.id
+        if(req.user.id === req.params.id){
+            return next(new HttpError(`Can't follow yourself`, 400))
+        }
+        const currentUser = await userModel.findById(req.user.id).select('-password')
+        if(!currentUser.following.includes(userToFollow)){
+            const updatedUser = await userModel.findByIdAndUpdate(userToFollow, {
+                $push: {
+                    followers: req.user.id
+                }
+            }, {
+                new: true
+            }).select('-password')
+
+            await userModel.findByIdAndUpdate(req.user.id, {
+                $push: {
+                    following: userToFollow
+                }
+            }, {
+                new: true
+            })
+            
+            res.json(updatedUser)
+        }else {
+            const updatedUser = await userModel.findByIdAndUpdate(userToFollow, {
+                $pull: {
+                    followers: req.user.id
+                }
+            }, {
+                new: true
+            }).select('-password')
+
+            await userModel.findByIdAndUpdate(req.user.id, {
+                $pull: {
+                    following: userToFollow
+                }
+            }, {
+                new: true
+            })
+            
+            res.json(updatedUser)
+        }
     } catch (error) {
         return next(new HttpError(error.message, error.statusCode))
     }
