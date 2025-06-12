@@ -13,10 +13,10 @@ const postSchema = new Schema({
         maxlength: 5000,
         minlength: 1
     },
-    image: {
+    images: [{
         type: String,
-        default: '',
-    },
+        required: false,
+    }],
     likes: [{
         type: Schema.Types.ObjectId,
         ref: 'User',

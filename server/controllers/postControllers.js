@@ -12,13 +12,46 @@ const path = require('path')
 // POST /api/posts
 // protected
 const createPost = async (req, res, next) => {
-    try{
-        if(!req.body){
-            return next(new HttpError('Post content is required', 400))
+    try {
+        const { body} = req.body;
+        const {images} = req.files?.images || []
+
+        if (!body || body.trim().length < 1) {
+            return next(new HttpError('Post body is required', 400));
         }
-        
-    }catch(error){
-        return next(new HttpError(error.message, error.statusCode))
+        const imageArray = [];
+        images.map((image) => {
+            if(!image.mimetype.startsWith('image/')){
+                return next(new HttpError('Invalid image format', 400))
+            }
+            if(image.size > 1024 * 1024 * 5){
+                return next(new HttpError('Image size should be less than 5MB', 400))
+            }
+            const imageName = `${uuid()}-${image.name}`
+            const imagePath = path.join(__dirname, '../uploads', imageName)
+            image.mv(imagePath, (err) => {
+                if(err){
+                    return next(new HttpError('Failed to upload image', 500))
+                }else{
+                    imageArray.push(imageName);
+                }
+            })
+        })
+
+        const newPost = new Post({
+            creator: req.user.id,
+            body: body.trim(),
+            images: imageArray
+        });
+
+        const savedPost = await newPost.save();
+
+        return res.status(201).json({
+            status: 'success',
+            data: savedPost
+        });
+    } catch (err) {
+        return next(new HttpError('Failed to create post', 500));
     }
 }
 
