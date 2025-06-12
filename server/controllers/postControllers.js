@@ -13,7 +13,10 @@ const path = require('path')
 // protected
 const createPost = async (req, res, next) => {
     try{
-        res.json('Create POst')
+        if(!req.body){
+            return next(new HttpError('Post content is required', 400))
+        }
+        
     }catch(error){
         return next(new HttpError(error.message, error.statusCode))
     }
