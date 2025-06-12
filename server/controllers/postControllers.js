@@ -43,17 +43,15 @@ const createPost = async (req, res, next) => {
             })
         })
 
-        const newPost = new Post({
+        const newPost = await PostModel.create({
             creator: req.user.id,
             body: cleanBody,
             images: imageArray
         });
 
-        const savedPost = await newPost.save();
-
         return res.status(201).json({
             status: 'success',
-            data: savedPost
+            data: newPost
         });
     } catch (err) {
         return next(new HttpError('Failed to create post', 500));
