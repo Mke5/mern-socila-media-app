@@ -4,6 +4,7 @@ const UserModel = require('../models/userModel')
 const {v4, uuid} = require('uuid')
 const fs = require('fs')
 const path = require('path')
+const sanitizeHtml = require('sanitize-html');
 
 
 
@@ -19,6 +20,10 @@ const createPost = async (req, res, next) => {
         if (!body || body.trim().length < 1) {
             return next(new HttpError('Post body is required', 400));
         }
+        const cleanBody = sanitizeHtml(body.trim(), {
+            allowedTags: [], // disallow all HTML tags
+            allowedAttributes: {} // disallow all attributes
+        });
         const imageArray = [];
         images.map((image) => {
             if(!image.mimetype.startsWith('image/')){
@@ -40,7 +45,7 @@ const createPost = async (req, res, next) => {
 
         const newPost = new Post({
             creator: req.user.id,
-            body: body.trim(),
+            body: cleanBody,
             images: imageArray
         });
 
