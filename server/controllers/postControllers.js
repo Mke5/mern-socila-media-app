@@ -194,7 +194,7 @@ const updatePost = async (req, res, next) => {
 // protected
 const deletePost = async (req, res, next) => {
     try{
-        res.json('delete POst')
+        
     }catch(error){
         return next(new HttpError(error.message, error.statusCode))
     }

@@ -54,3 +54,10 @@ router.get('/posts/:id/bookmark', bookmarkPost)
 
 
 module.exports = router
+
+
+
+// app.post('/logout', (req, res) => {
+//     res.clearCookie('token');
+//     return res.status(200).json({ message: 'Logged out successfully' });
+// });
