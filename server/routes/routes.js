@@ -10,6 +10,19 @@ const {
     followUnfollowUser,
 } = require('../controllers/userControllers')
 
+const {
+    createPost,
+    updatePost,
+    deletePost,
+    getPost,
+    getPosts,
+    getUserPosts,
+    getFollowingPost,
+    likeDislikePost,
+    bookmarkPost,
+    getPostBookmarks
+} = require('../controllers/postController')
+
 
 
 router.post('/users/register', registerUser)
