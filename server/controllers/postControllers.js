@@ -42,17 +42,21 @@ const createPost = async (req, res, next) => {
                 }
             })
         })
-
         const newPost = await PostModel.create({
             creator: req.user.id,
             body: cleanBody,
             images: imageArray
         });
 
+        await UserModel.findByIdAndUpdate(newPost?.creator, {
+            $push: {posts: newPost?._id},
+        })
+
         return res.status(201).json({
             status: 'success',
             data: newPost
         });
+
     } catch (err) {
         return next(new HttpError('Failed to create post', 500));
     }
@@ -69,7 +73,22 @@ const createPost = async (req, res, next) => {
 // protected
 const getPost = async (req, res, next) => {
     try{
-        res.json('get post')
+        const {id} = req.params
+        if(!id){
+            return next(new HttpError('Post ID is required', 400))
+        }
+        const post = await PostModel.findById(id) .populate('creator', 'name username avatar') // populate post creator
+        .populate({
+            path: 'comments',
+            options: { sort: { createdAt: -1 } },
+            populate: {
+                path: 'user',
+                select: 'name username avatar'
+            }
+        })
+
+        res.json(post).status(200)
+
     }catch(error){
         return next(new HttpError(error.message, error.statusCode))
     }
@@ -86,7 +105,11 @@ const getPost = async (req, res, next) => {
 // protected
 const getPosts = async (req, res, next) => {
     try{
-        res.json('get posts')
+        const posts = await PostModel.find().sort({
+            createdAt: -1
+        })
+
+        res.json(posts).status(200)
     }catch(error){
         return next(new HttpError(error.message, error.statusCode))
     }
