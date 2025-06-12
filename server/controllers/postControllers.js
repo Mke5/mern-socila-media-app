@@ -194,7 +194,23 @@ const updatePost = async (req, res, next) => {
 // protected
 const deletePost = async (req, res, next) => {
     try{
-        
+        const postId = req.params.id;
+
+        // Find the post
+        const post = await PostModel.findById(postId);
+        if (!post) {
+            return next(new HttpError('Post not found', 404));
+        }
+
+        // Authorization check (optional)
+        if (post?.creator.toString() !== req.user.id) {
+            return next(new HttpError('Not authorized to update this post', 403));
+        }
+
+        await PostModel.findByIdAndDelete(postId)
+        res.status(200).json({
+            message: 'Post deleted successfully'
+        })
     }catch(error){
         return next(new HttpError(error.message, error.statusCode))
     }
@@ -209,7 +225,11 @@ const deletePost = async (req, res, next) => {
 // protected
 const getFollowingPost = async (req, res, next) => {
     try{
-        res.json('get Following POst')
+        const user = await UserModel.findById(req.user.id)
+        const posts = await PostModel.find({
+            creator: { $in: user?.following}
+        })
+        res.status(200).json(posts)
     }catch(error){
         return next(new HttpError(error.message, error.statusCode))
     }
