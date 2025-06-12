@@ -124,7 +124,59 @@ const getPosts = async (req, res, next) => {
 // protected
 const updatePost = async (req, res, next) => {
     try{
-        res.json('update POst')
+        const postId = req.params.id;
+        const { body } = req.body;
+        const images = req.files?.images;
+
+        // Find the post
+        const post = await PostModel.findById(postId);
+        if (!post) {
+            return next(new HttpError('Post not found', 404));
+        }
+
+        // Authorization check (optional)
+        if (post?.creator.toString() !== req.user.id) {
+            return next(new HttpError('Not authorized to update this post', 403));
+        }
+        
+        // Sanitize and update body if provided
+        if (body && body.trim().length > 0) {
+            post.body = sanitizeHtml(body.trim(), {
+                allowedTags: [],
+                allowedAttributes: {}
+            });
+        }
+        const uploadedImages = [];
+        images.map((image) => {
+            if(!image.mimetype.startsWith('image/')){
+                return next(new HttpError('Invalid image format', 400))
+            }
+            if(image.size > 1024 * 1024 * 5){
+                return next(new HttpError('Image size should be less than 5MB', 400))
+            }
+            const imageName = `${uuid()}-${image.name}`
+            const imagePath = path.join(__dirname, '../uploads', imageName)
+            image.mv(imagePath, (err) => {
+                if(err){
+                    return next(new HttpError('Failed to upload image', 500))
+                }else{
+                    uploadedImages.push(imageName);
+                }
+            })
+        })
+
+        // If new images were uploaded,
+        if (uploadedImages.length > 0) {
+            for (const img of post.images) {
+                const oldImagePath = path.join(__dirname, '../uploads', img);
+                fs.existsSync(oldImagePath) && fs.unlinkSync(oldImagePath);
+            }
+            post.images = uploadedImages;
+        }
+
+        const updatedPost = await post.save();
+        res.status(200).json(updatedPost)
+
     }catch(error){
         return next(new HttpError(error.message, error.statusCode))
     }
