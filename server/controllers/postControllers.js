@@ -208,6 +208,9 @@ const deletePost = async (req, res, next) => {
         }
 
         await PostModel.findByIdAndDelete(postId)
+        await UserModel.findByIdAndUpdate(post?.creator,  {
+            $pull: {posts: postId}
+        })
         res.status(200).json({
             message: 'Post deleted successfully'
         })
@@ -242,7 +245,26 @@ const getFollowingPost = async (req, res, next) => {
 // protected
 const likeDislikePost = async (req, res, next) => {
     try{
-        res.json('likeDislike POst')
+        const {id} = req.params
+        if(!id){
+            return next(new HttpError('Post ID is required', 400))
+        }
+
+        const post = await PostModel.findById(id)
+        if(!post){
+            return next(new HttpError('Post not found', 404))
+        }
+        let updatedPost
+        if(post?.likes.includes(req.user.id)){
+            updatedPost = await PostModel.findByIdAndUpdate(id, {
+                $pull: {likes: req.user.id},
+            }, {new: true})
+        }else{
+            updatedPost = await PostModel.findByIdAndUpdate(id, {
+                $push: {likes: req.user.id},
+            }, {new: true})
+        }
+        res.status(200).json(updatedPost)
     }catch(error){
         return next(new HttpError(error.message, error.statusCode))
     }
