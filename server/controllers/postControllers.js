@@ -282,7 +282,11 @@ const likeDislikePost = async (req, res, next) => {
 // protected
 const getUserPosts = async (req, res, next) => {
     try{
-        res.json('get user POst')
+        const userId = req.params.id
+        const posts = await PostModel.find({creator: userId}).sort({
+            createdAt: -1
+        }).populate({path: 'posts', select: 'name avatar username', options: {sort: {createdAt: -1}}})
+        res.status(200).json(posts)
     }catch(error){
         return next(new HttpError(error.message, error.statusCode))
     }
@@ -299,7 +303,26 @@ const getUserPosts = async (req, res, next) => {
 // protected
 const bookmarkPost = async (req, res, next) => {
     try{
-        res.json('bookmark POst')
+        const {id} = req.params
+        if(!id){
+            return next(new HttpError('Post ID is required', 400))
+        }
+        const user = await UserModel.findById(req.user.id)
+        if(!user){
+            return next(new HttpError('User not found', 404))
+        }
+        if(user?.bookmarks?.includes(id)){
+            const userBookmarks = await UserModel.findByIdAndUpdate(req.user.id, {
+                $pull: {bookmarks: id}
+            }, {new: true})
+            res.status(200).json(userBookmarks)
+        }else{
+            const userBookmarks = await UserModel.findByIdAndUpdate(req.user.id, {
+                $push: {bookmarks: id}
+            }, {new: true})
+            res.status(200).json(userBookmarks)
+        }
+        const post = await PostModel.findById(id)
     }catch(error){
         return next(new HttpError(error.message, error.statusCode))
     }
@@ -319,7 +342,11 @@ const bookmarkPost = async (req, res, next) => {
 // protected
 const getPostBookmarks = async (req, res, next) => {
     try{
-        res.json('get bookmarks POst')
+        const userBookmarks = await UserModel.findById(req.user.id).populate({
+            path: 'bookmarks',
+            options: { sort: {createdAt: -1}}
+        })
+        res.status(200).json(userBookmarks)
     }catch(error){
         return next(new HttpError(error.message, error.statusCode))
     }
