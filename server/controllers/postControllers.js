@@ -1,4 +1,4 @@
-const HttpError = require('../middlewares/errorMiddleware')
+const HttpError = require('../models/errorModel')
 const PostModel = require('../models/postModel')
 const UserModel = require('../models/userModel')
 const {v4, uuid} = require('uuid')

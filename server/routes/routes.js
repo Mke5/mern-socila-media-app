@@ -23,6 +23,11 @@ const {
     getPostBookmarks
 } = require('../controllers/postControllers')
 
+const {
+    createComment,
+    getPostComment,
+    deleteComment
+} = require('../controllers/commentController')
 
 // user routes
 router.post('/users/register', registerUser)
@@ -52,6 +57,10 @@ router.get('/posts/:id/bookmark', bookmarkPost)
 
 
 
+// comments routes
+router.post('/comments/:id', authMiddleware, createComment)
+router.get('/comments/:postId', authMiddleware, getPostComment)
+router.delete('/comments/:commentId', authMiddleware, deleteComment)
 
 module.exports = router
 
