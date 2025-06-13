@@ -49,7 +49,14 @@ const createComment = async(req, res, next) => {
 // protected
 const getPostComment = async(req, res, next) => {
     try{
-        
+        const {postId} = req.params
+        const comments = await PostModel.findById(postId).populate({
+            path: 'comments',
+            options: {
+                sort: {createdAt: -1}
+            }
+        })
+        res.status(200).json(comments)
     }catch(error){
         return next(new HttpError(error.message, error.statusCode))
     }
@@ -64,7 +71,20 @@ const getPostComment = async(req, res, next) => {
 // protected
 const deleteComment = async(req, res, next) => {
     try{
-        
+        const {commentId} = req.params
+        const comment = await CommentModel.findById(commentId)
+        const commentCreator = await UserModel.findById(comment?.creator?.creatorId)
+
+        if(commentCreator?._id !== req.user.id){
+            return next(new HttpError('Unauthorized actions', 403))
+        }
+        await PostModel.findByIdAndUpdate(comment?.postId, {
+            $pull: {comments: commentId}
+        })
+        await CommentModel.findByIdAndDelete(commentId)
+        res.json({
+            message: "comment deleted"
+        })
     }catch(error){
         return next(new HttpError(error.message, error.statusCode))
     }
