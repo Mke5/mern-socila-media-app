@@ -14,8 +14,18 @@ const { v4: uuid } = require('uuid');
 // protected
 const getMessage = async(req, res, next) => {
     try{
-
-    }catch(error){
+        const {recieverId} = req.params
+        const conversation = await ConversationModel.findOne({
+            participants: {
+                $all: [req.user.id, recieverId]
+            }
+        })
+        if(!conversation){
+            return next(new HttpError('Conversation not found', 404))
+        }
+        const messages = await MessageModel.find({conversationId: conversation._id}).sort({createdAt: -1}).populate('senderId', 'fullName profilePicture')
+        res.status(200).json(messages)
+    } catch(error){
         return next(new HttpError(error.message, error.statusCode))
     }
 }
@@ -31,8 +41,16 @@ const getMessage = async(req, res, next) => {
 // protected
 const getConversation = async(req, res, next) => {
     try{
+        let conversations = await ConversationModel.find({
+            participants: req.user.id
+        }).populate('participants', 'fullName profilePicture').sort({createdAt: -1})
+        // remove logged in user from participants
+        conversations.map(conversation => {
+            conversation.participants = conversation.participants.filter(participant => participant._id.toString() !== req.user.id.toString())
+        })
 
-    }catch(error){
+        res.status(200).json(conversations)
+    } catch(error){
         return next(new HttpError(error.message, error.statusCode))
     }
 }
@@ -80,7 +98,6 @@ const createMessage = async(req, res, next) => {
     // }catch(error){
     //     return next(new HttpError(error.message, error.statusCode))
     // }
-
     try {
         const { recieverId } = req.params;
         let { message } = req.body;
