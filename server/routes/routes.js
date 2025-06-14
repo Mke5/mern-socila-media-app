@@ -29,6 +29,12 @@ const {
     deleteComment
 } = require('../controllers/commentController')
 
+const {
+    getMessage,
+    getConversation,
+    createMessage
+} = require('../controllers/messageController')
+
 // user routes
 router.post('/users/register', registerUser)
 router.post('/users/login', loginUser)
@@ -61,6 +67,15 @@ router.get('/posts/:id/bookmark', bookmarkPost)
 router.post('/comments/:id', authMiddleware, createComment)
 router.get('/comments/:postId', authMiddleware, getPostComment)
 router.delete('/comments/:commentId', authMiddleware, deleteComment)
+
+
+
+
+// message routes
+router.post('/messages/:recieverId', authMiddleware, createMessage)
+router.get('/messages/:recieverId', authMiddleware, getMessage)
+router.get('/conversations', authMiddleware, getConversation)
+
 
 module.exports = router
 

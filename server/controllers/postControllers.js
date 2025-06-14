@@ -4,7 +4,7 @@ const UserModel = require('../models/userModel')
 const {v4, uuid} = require('uuid')
 const fs = require('fs')
 const path = require('path')
-const sanitizeHtml = require('sanitize-html');
+const sanitizeHtml = require('sanitize-html')
 
 
 

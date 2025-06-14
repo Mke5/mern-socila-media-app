@@ -2,6 +2,8 @@ const HttpError = require('../models/errorModel')
 const userModel = require('../models/userModel')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const sanitizeHtml = require('sanitize-html')
+
 
 
 // register user
@@ -13,6 +15,18 @@ const registerUser = async (req, res, next) => {
             return next(new HttpError('No data provided', 400))
         }
         let {fullName, email, password, confirmPassword} = req.body
+        fullName = sanitizeHtml(fullname.trim(),{
+            allowedTags: [],
+            allowedAttributes: {}
+        })
+        email = sanitizeHtml(email.trim(),{
+            allowedTags: [],
+            allowedAttributes: {}
+        })
+        password = sanitizeHtml(password.trim(),{
+            allowedTags: [],
+            allowedAttributes: {}
+        })
         if(!fullName || !email || !password || !confirmPassword){
             return next(new HttpError('All fields are required', 400))
         }
