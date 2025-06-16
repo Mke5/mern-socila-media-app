@@ -4,6 +4,7 @@ const ConversationModel = require('../models/conversationModel')
 const sanitizeHtml = require('sanitize-html')
 const path = require('path');
 const { v4: uuid } = require('uuid');
+const { getRecieverSocketId, io } = require('../socket/socket');
 
 
 
@@ -208,7 +209,10 @@ const createMessage = async(req, res, next) => {
             senderId: req.user.id
         };
         await conversation.save();
-
+        const recieverSocketId = getRecieverSocketId(recieverId)
+        if(recieverSocketId){
+            io.to(recieverSocketId).emit('newMessage', newMessage)
+        }
         return res.status(201).json(newMessage);
 
     } catch (error) {
