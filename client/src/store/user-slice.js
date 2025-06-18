@@ -12,6 +12,16 @@ const userSlice = createSlice({
         changeCurrentUser: (state, action) => {
             state.currentUser = action.payload
         },
-        set
+        setSocket: (state, action) => {
+            state.socket = action.payload
+        },
+        setOlineUsers: (state, action) => {
+            state.onlineUsers = action.payload
+        }
     }
 })
+
+
+export const userActions = userSlice.actions
+
+export default userSlice
