@@ -14,8 +14,8 @@ const errorHandler = (error, req, res, next) => {
     // }
     // res.status(error.statusCode || 500).json({message: error.message || "An unknown error occurred"})
 
-    const status = err.statusCode || 500;
-    const message = err.message || 'Something went wrong';
+    const status = error.statusCode || 500;
+    const message = error.message || 'Something went wrong';
 
     if (process.env.NODE_ENV === 'production') {
         console.error(`[ERROR] ${status} - ${message}`);
@@ -24,7 +24,7 @@ const errorHandler = (error, req, res, next) => {
     res.status(status).json({
         status: 'error',
         message,
-        ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+        ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
     });
 }
 
