@@ -85,13 +85,14 @@ const loginUser = async (req, res, next) => {
             sameSite: 'Strict',
             maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
         });
-        res.json({token,  
+        res.status(200).json({ 
             user: {
                 id: user._id,
                 email: user.email,
-                fullName: user.fullName
+                fullName: user.fullName,
+                profilePhoto: user.profilePicture
             }
-        }).status(200)
+        })
     } catch (error) {
         return next(new HttpError(error.message, error.statusCode))
     }
