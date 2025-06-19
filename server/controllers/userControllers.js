@@ -84,7 +84,7 @@ const loginUser = async (req, res, next) => {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'Strict',
             maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-        });
+        }) 
         res.status(200).json({ 
             user: {
                 id: user._id,
@@ -97,6 +97,26 @@ const loginUser = async (req, res, next) => {
         return next(new HttpError(error.message, error.statusCode))
     }
 }
+
+
+
+
+
+// logout user
+// POST : /api/users/logout
+// unprotected route
+const logoutUser = (req, res, next) => {
+    try {
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'Strict'
+        }) 
+        return res.status(200).json({ message: 'Logged out successfully' }) 
+    } catch (error) {
+        return next(new HttpError('Logout failed', 500)) 
+    }
+} 
 
 
 
@@ -114,7 +134,7 @@ const getUser = async (req, res, next) => {
         if(!user || user === ''){
             return next(new HttpError('User not found', 404))
         }
-        res.status(200).json({ token, user: { id: user._id, email: user.email, fullName: user.fullName } });
+        res.status(200).json({ token, user: { id: user._id, email: user.email, fullName: user.fullName } }) 
     } catch (error) {
         return next(new HttpError(error.message, error.statusCode))
     }
@@ -154,39 +174,39 @@ const editUser = async (req, res, next) => {
         if(!req.body){
             return next(new HttpError('No data provided', 400))
         }
-        const { name, email, currentPassword, newPassword, confirmPassword } = req.body;
+        const { name, email, currentPassword, newPassword, confirmPassword } = req.body 
 
         if (!name || !email || !currentPassword || !newPassword || !confirmPassword) {
-            return next(new HttpError('Fill all fields!', 422));
+            return next(new HttpError('Fill all fields!', 422)) 
         }
 
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user.id) 
         if (!user) {
-            return next(new HttpError('User not found', 404));
+            return next(new HttpError('User not found', 404)) 
         }
         if (user.email !== email) {
-            const emailExists = await User.findOne({ email });
+            const emailExists = await User.findOne({ email }) 
             if (emailExists) {
-                return next(new HttpError('Email already in use by another account', 409));
+                return next(new HttpError('Email already in use by another account', 409)) 
             }
         }
-        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        const isMatch = await bcrypt.compare(currentPassword, user.password) 
         if (!isMatch) {
-            return next(new HttpError('Incorrect current password', 401));
+            return next(new HttpError('Incorrect current password', 401)) 
         }
         if (newPassword !== confirmPassword) {
-            return next(new HttpError('New passwords do not match', 422));
+            return next(new HttpError('New passwords do not match', 422)) 
         }
-        const salt = await bcrypt.genSalt(12);
-        const hashedPassword = await bcrypt.hash(newPassword, salt);
+        const salt = await bcrypt.genSalt(12) 
+        const hashedPassword = await bcrypt.hash(newPassword, salt) 
 
-        user.name = name;
-        user.email = email;
-        user.password = hashedPassword;
+        user.name = name 
+        user.email = email 
+        user.password = hashedPassword 
 
-        await user.save();
+        await user.save() 
 
-        res.status(200).json({ message: 'User updated successfully' });
+        res.status(200).json({ message: 'User updated successfully' }) 
     } catch (error) {
         return next(new HttpError(error.message, error.statusCode))
     }
@@ -270,7 +290,7 @@ const changeUserAvatar = async (req, res, next) => {
 
         const user = await User.findById(req.user.id)
         if (!user) {
-            return next(new HttpError('User not found', 404));
+            return next(new HttpError('User not found', 404)) 
         }
         if(user.avatar){
             fs.unlink(path.join(__dirname, '..', 'uploads', user.avatar), (err) => {
@@ -285,26 +305,26 @@ const changeUserAvatar = async (req, res, next) => {
             return next(new HttpError('file size greater than 500kb', 422))
         }
 
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'] 
         if (!allowedTypes.includes(avatar.mimetype)) {
-            return next(new HttpError('Only image files are allowed (jpeg, png, gif, webp)', 422));
+            return next(new HttpError('Only image files are allowed (jpeg, png, gif, webp)', 422)) 
         }
 
-        const fileExt = path.extname(avatar.name);
-        const safeBaseName = path.basename(avatar.name, fileExt).replace(/[^a-zA-Z0-9_-]/g, '');
-        const newFileName = `${safeBaseName}-${uuid()}${fileExt}`;
-        const uploadPath = path.join(__dirname, '..', 'uploads', newFileName);
+        const fileExt = path.extname(avatar.name) 
+        const safeBaseName = path.basename(avatar.name, fileExt).replace(/[^a-zA-Z0-9_-]/g, '') 
+        const newFileName = `${safeBaseName}-${uuid()}${fileExt}` 
+        const uploadPath = path.join(__dirname, '..', 'uploads', newFileName) 
 
         avatar.mv(uploadPath, async (err) => {
             if (err) {
-                return next(new HttpError('Failed to upload image', 500));
+                return next(new HttpError('Failed to upload image', 500)) 
             }
 
-            user.avatar = newFileName;
-            await user.save();
+            user.avatar = newFileName 
+            await user.save() 
 
-            res.status(200).json({ message: 'Avatar updated successfully', avatar: newFileName });
-        });
+            res.status(200).json({ message: 'Avatar updated successfully', avatar: newFileName }) 
+        }) 
     } catch (error) {
         return next(new HttpError(error.message, error.statusCode))
     }
@@ -322,4 +342,5 @@ module.exports = {
     editUser,
     getUsers,
     followUnfollowUser,
+    logoutUser
 }

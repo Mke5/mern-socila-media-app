@@ -1,8 +1,10 @@
 import React from 'react'
 
-const ProfileImage = () => {
+const ProfileImage = ({image, className}) => {
   return (
-    <div>ProfileImage</div>
+    <div className={`profileImage ${className}`}>
+      <img src={image} alt="" />
+    </div>
   )
 }
 

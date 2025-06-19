@@ -8,6 +8,7 @@ const {
     getUsers,
     editUser,
     followUnfollowUser,
+    logoutUser
 } = require('../controllers/userControllers')
 
 const {
@@ -37,6 +38,7 @@ const {
 
 // user routes
 router.post('/users/register', registerUser)
+router.post('/users/logout', logoutUser)
 router.post('/users/login', loginUser)
 router.get('/users/bookmarks', authMiddleware, getPostBookmarks)
 router.get('/users/:id', authMiddleware, getUser)
