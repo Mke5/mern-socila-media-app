@@ -53,14 +53,14 @@ router.get('/users/:id/posts', authMiddleware, getUserPosts)
 
 
 // post routes
-router.get('/posts', getPosts)
-router.post('/posts', createPost)
-router.get('/posts/following', getFollowingPost)
-router.get('/posts/:id', getPost)
-router.patch('/posts/:id', updatePost)
-router.delete('/posts/:id', deletePost)
-router.get('/posts/:id/like', likeDislikePost)
-router.get('/posts/:id/bookmark', bookmarkPost)
+router.get('/posts', authMiddleware, getPosts)
+router.post('/posts', authMiddleware, createPost)
+router.get('/posts/following', authMiddleware, getFollowingPost)
+router.get('/posts/:id', authMiddleware, getPost)
+router.patch('/posts/:id', authMiddleware, updatePost)
+router.delete('/posts/:id', authMiddleware, deletePost)
+router.get('/posts/:id/like', authMiddleware, likeDislikePost)
+router.get('/posts/:id/bookmark', authMiddleware, bookmarkPost)
 
 
 
@@ -80,10 +80,3 @@ router.get('/conversations', authMiddleware, getConversation)
 
 
 module.exports = router
-
-
-
-// app.post('/logout', (req, res) => {
-//     res.clearCookie('token');
-//     return res.status(200).json({ message: 'Logged out successfully' });
-// });

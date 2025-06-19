@@ -15,7 +15,10 @@ const sanitizeHtml = require('sanitize-html')
 const createPost = async (req, res, next) => {
     try {
         const { body} = req.body;
-        const {images} = req.files?.images || []
+        let images = req.files?.images || []
+        if (!Array.isArray(images)) {
+        images = [images]
+        }
 
         if (!body || body.trim().length < 1) {
             return next(new HttpError('Post body is required', 400));
@@ -58,7 +61,7 @@ const createPost = async (req, res, next) => {
         });
 
     } catch (err) {
-        return next(new HttpError('Failed to create post', 500));
+        return next(new HttpError(err.message, 500));
     }
 }
 
