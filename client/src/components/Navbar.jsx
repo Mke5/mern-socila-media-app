@@ -1,13 +1,19 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { CiSearch } from 'react-icons/ci'
 import ProfileImage from './ProfileImage'
 import { useSelector } from 'react-redux'
 
 const Navbar = () => {
+  const navigate = useNavigate()
   const currentUser = useSelector((state) => state.user.currentUser)
   const userId = currentUser?.id
   const profilePhoto = currentUser?.profilePhoto
+  useEffect(() => {
+    if(!currentUser){
+      navigate('/login')
+    }
+  }, [])
   return (
     <nav className="navbar">
       <div className="container navbar__container">
