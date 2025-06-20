@@ -51,27 +51,26 @@ const createPost = async (req, res, next) => {
                   return reject(new HttpError(err.message, 500))
                 }
                 const absoluteUrl = `${baseUrl}/uploads/${imageName}`
-                console.log(absoluteUrl)
-                // resolve(absoluteUrl)
+                resolve(absoluteUrl)
               })
             })
           })
         )
     
-        // const newPost = await PostModel.create({
-        //   creator: req.user.id,
-        //   body: cleanBody,
-        //   images: imageArray
-        // })
+        const newPost = await PostModel.create({
+          creator: req.user.id,
+          body: cleanBody,
+          images: imageArray
+        })
     
-        // await UserModel.findByIdAndUpdate(newPost?.creator, {
-        //   $push: { posts: newPost?._id }
-        // })
+        await UserModel.findByIdAndUpdate(newPost?.creator, {
+          $push: { posts: newPost?._id }
+        })
     
-        // return res.status(201).json({
-        //   status: 'success',
-        //   data: newPost
-        // })
+        return res.status(201).json({
+          status: 'success',
+          data: newPost
+        })
     }catch (err) {
         return next(new HttpError(err.message, 500));
     }
@@ -102,10 +101,10 @@ const getPost = async (req, res, next) => {
             }
         })
 
-        res.json(post).status(200)
+        res.status(200).json(post)
 
     }catch(error){
-        return next(new HttpError(error.message, error.statusCode))
+        return next(new HttpError(error.message, error.statusCode || 500))
     }
 }
 
@@ -124,7 +123,7 @@ const getPosts = async (req, res, next) => {
             createdAt: -1
         })
 
-        res.json(posts).status(200)
+        res.status(200).json(posts)
     }catch(error){
         return next(new HttpError(error.message, error.statusCode))
     }

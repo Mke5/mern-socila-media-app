@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useSelector } from 'react-redux'
 import CreatPost from '../components/CreatePost'
+import Feeds from '../components/Feeds'
 
 const Home = () => {
   const [posts, setPosts] = useState([])
@@ -11,40 +12,36 @@ const Home = () => {
 
   const createPost = async (data) => {
     setError(null)
-    const logFormData = (formData) => {
-      console.log("--- FormData Contents ---");
-      
-      // Log text fields
-      if (formData.has('body')) {
-        console.log(`body: "${formData.get('body')}"`);
-      }
-    
-      // Log files
-      const images = formData.getAll('images');
-      console.log(`Found ${images.length} images:`);
-      
-      images.forEach((file, index) => {
-        console.log(`Image ${index + 1}:`);
-        console.log(`  Name: ${file.name}`);
-        console.log(`  Type: ${file.type}`);
-        console.log(`  Size: ${file.size} bytes`);
-        console.log(`  Last modified: ${new Date(file.lastModified).toLocaleString()}`);
-      });
-      
-      console.log("-------------------------");
-  };
     logFormData(data)
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/posts`, data, {withCredentials: true})
       const newPost = response?.data?.data
+      console.log(newPost)
       setPosts([newPost, ...posts])
     } catch (error) {
       setError(error?.response?.data?.message)
     }
   }
+
+  const getPosts = async () => {
+    setIsLoading(true)
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/posts`, {withCredentials: true})
+      setPosts(response?.data)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  useEffect(() => {
+    getPosts
+  }, [setPosts])
+
+  console.log(posts)
   return (
     <section className="mainArea">
       <CreatPost onCreatePost={createPost} error={error} />
+      <Feeds posts={posts} onSetPosts={setPosts} />
     </section>
   )
 }
