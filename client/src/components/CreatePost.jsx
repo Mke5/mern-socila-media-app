@@ -5,16 +5,44 @@ import { SlPicture } from 'react-icons/sl'
 
 const CreatePost = ({onCreatePost, error}) => {
     const [body, setBody] = useState('')
-    const [image, setImage] = useState(null)
+    const [images, setImages] = useState([])
     const profilePhoto = useSelector((state) => state?.user?.currentUser?.profilePhoto)
     const createPost = (e) => {
         e.preventDefault()
         const postData = new FormData()
         postData.set('body', body)
-        postData.set('image', image)
+        for (let i = 0; i < images.length; i++) {
+            postData.append('images', images[i])
+        }
+
+        const logFormData = (formData) => {
+            console.log("--- FormData Contents ---");
+            
+            // Log text fields
+            if (formData.has('body')) {
+              console.log(`body: "${formData.get('body')}"`);
+            }
+          
+            // Log files
+            const images = formData.getAll('images');
+            console.log(`Found ${images.length} images:`);
+            
+            images.forEach((file, index) => {
+              console.log(`Image ${index + 1}:`);
+              console.log(`  Name: ${file.name}`);
+              console.log(`  Type: ${file.type}`);
+              console.log(`  Size: ${file.size} bytes`);
+              console.log(`  Last modified: ${new Date(file.lastModified).toLocaleString()}`);
+            });
+            
+            console.log("-------------------------");
+        };
+        // console.log(postData)
+
+        // logFormData(postData)
         onCreatePost(postData)
-        setBody('')
-        setImage(null)
+        // setBody('')
+        // setImages([])
     }
   return (
     <form className="createPost" encType='multipart/form-data' onSubmit={createPost}>
@@ -27,7 +55,7 @@ const CreatePost = ({onCreatePost, error}) => {
             <span></span>
             <div className="createPost__actions">
                 <label htmlFor="image"><SlPicture /></label>
-                <input type="file" id='image' onChange={(e) => setImage(e.target.files[0])} />
+                <input name="images" type="file" id='image' onChange={(e) => setImages([...e.target.files])} multiple/>
                 <button type='submit'>Post</button>
             </div>
         </div>

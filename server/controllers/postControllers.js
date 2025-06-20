@@ -1,7 +1,7 @@
 const HttpError = require('../models/errorModel')
 const PostModel = require('../models/postModel')
 const UserModel = require('../models/userModel')
-const {v4, uuid} = require('uuid')
+const {v4: uuid} = require('uuid')
 const fs = require('fs')
 const path = require('path')
 const sanitizeHtml = require('sanitize-html')
@@ -14,53 +14,65 @@ const sanitizeHtml = require('sanitize-html')
 // protected
 const createPost = async (req, res, next) => {
     try {
-        const { body} = req.body;
-        let images = req.files?.images || []
-        if (!Array.isArray(images)) {
-        images = [images]
-        }
-
+        const { body } = req.body
+        let images = req?.files?.images || []
+        if (!Array.isArray(images)) images = [images]
+    
         if (!body || body.trim().length < 1) {
-            return next(new HttpError('Post body is required', 400));
+          return next(new HttpError('Post body is required', 400))
         }
+    
         const cleanBody = sanitizeHtml(body.trim(), {
-            allowedTags: [], // disallow all HTML tags
-            allowedAttributes: {} // disallow all attributes
-        });
-        const imageArray = [];
-        images.map((image) => {
-            if(!image.mimetype.startsWith('image/')){
-                return next(new HttpError('Invalid image format', 400))
-            }
-            if(image.size > 1024 * 1024 * 5){
-                return next(new HttpError('Image size should be less than 5MB', 400))
-            }
-            const imageName = `${uuid()}-${image.name}`
-            const imagePath = path.join(__dirname, '../uploads', imageName)
-            image.mv(imagePath, (err) => {
-                if(err){
-                    return next(new HttpError('Failed to upload image', 500))
-                }else{
-                    imageArray.push(imageName);
+          allowedTags: [],
+          allowedAttributes: {}
+        })
+
+        const getBaseUrl = (req) => {
+            return `${req.protocol}://${req.get('host')}`;
+        }
+
+        const baseUrl = getBaseUrl(req)
+    
+        const imageArray = await Promise.all(
+          images.map((image) => {
+            return new Promise((resolve, reject) => {
+              if (!image.mimetype.startsWith('image/')) {
+                return reject(new HttpError('Invalid image format', 400))
+              }
+              if (image.size > 1024 * 1024 * 5) {
+                return reject(new HttpError('Image size should be less than 5MB', 400))
+              }
+    
+              const imageName = `${uuid()}-${image.name}`
+              const imagePath = path.join(__dirname, '..', 'uploads', imageName)
+    
+              image.mv(imagePath, (err) => {
+                if (err) {
+                  return reject(new HttpError(err.message, 500))
                 }
+                const absoluteUrl = `${baseUrl}/uploads/${imageName}`
+                console.log(absoluteUrl)
+                // resolve(absoluteUrl)
+              })
             })
-        })
-        const newPost = await PostModel.create({
-            creator: req.user.id,
-            body: cleanBody,
-            images: imageArray
-        });
-
-        await UserModel.findByIdAndUpdate(newPost?.creator, {
-            $push: {posts: newPost?._id},
-        })
-
-        return res.status(201).json({
-            status: 'success',
-            data: newPost
-        });
-
-    } catch (err) {
+          })
+        )
+    
+        // const newPost = await PostModel.create({
+        //   creator: req.user.id,
+        //   body: cleanBody,
+        //   images: imageArray
+        // })
+    
+        // await UserModel.findByIdAndUpdate(newPost?.creator, {
+        //   $push: { posts: newPost?._id }
+        // })
+    
+        // return res.status(201).json({
+        //   status: 'success',
+        //   data: newPost
+        // })
+    }catch (err) {
         return next(new HttpError(err.message, 500));
     }
 }

@@ -2,26 +2,31 @@ const express = require('express')
 const {connect} = require('mongoose')
 require('dotenv').config()
 const cors = require('cors')
-const upload = require('express-fileupload')
+const fileUpload = require('express-fileupload')
 const { notFound, errorHandler } = require('./middlewares/errorMiddleware')
 const routes = require('./routes/routes')
 const cookieParser = require('cookie-parser')
 const { server, app } = require('./socket/socket')
+const path = require('path')
 
 
 // const app = express()
-app.use(cookieParser())
-app.use(express.json({
-    extended: true
-}))
 app.use(cors({
     credentials: true,
     origin: process.env.CLIENT_URL
 }))
-app.use(express.urlencoded({
-    extended: true
+
+app.use(cookieParser())
+
+app.use(fileUpload({
+    useTempFiles: false,
+    createParentPath: true
 }))
-app.use(upload())
+
+app.use(express.urlencoded({ extended: true }))
+app.use(express.json())
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
 app.use('/api', routes)
 
