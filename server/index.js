@@ -3,7 +3,7 @@ const {connect} = require('mongoose')
 require('dotenv').config()
 const cors = require('cors')
 const fileUpload = require('express-fileupload')
-const { notFound, errorHandler } = require('./middlewares/errorMiddleware')
+c
 const routes = require('./routes/routes')
 const cookieParser = require('cookie-parser')
 const { server, app } = require('./socket/socket')

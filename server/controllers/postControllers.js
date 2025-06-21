@@ -121,7 +121,7 @@ const getPosts = async (req, res, next) => {
     try{
         const posts = await PostModel.find().sort({
             createdAt: -1
-        })
+        }).populate('creator', 'fullName profilePhoto -password')
 
         res.status(200).json(posts)
     }catch(error){

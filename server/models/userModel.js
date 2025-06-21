@@ -26,11 +26,11 @@ const userSchema = new Schema({
         required: true,
         minlength: 8,
         maxlength: 100,
-        select: true, // Exclude password from queries by default
+        select: true, // Exclude password from queries by default if false
     },
     profilePicture: {
         type: String,
-        default: '',
+        default: 'http://localhost:5000/uploads/02758dd2-45f6-4619-b352-f907731567d8-myPic.jpg',
         trim: true,
         validate: {
             validator: function(v) {
@@ -73,4 +73,4 @@ const userSchema = new Schema({
 
 
 
-module.exports = model('User', userSchema, )
+module.exports = model('User', userSchema)

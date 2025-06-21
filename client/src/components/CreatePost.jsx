@@ -14,6 +14,7 @@ const CreatePost = ({onCreatePost, error}) => {
       for (let i = 0; i < images.length; i++) {
         postData.append('images', images[i])
       }
+      onCreatePost(postData)
       setBody('')
       setImages([])
     }

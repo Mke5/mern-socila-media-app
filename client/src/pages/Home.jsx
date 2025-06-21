@@ -12,11 +12,9 @@ const Home = () => {
 
   const createPost = async (data) => {
     setError(null)
-    logFormData(data)
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/posts`, data, {withCredentials: true})
       const newPost = response?.data?.data
-      console.log(newPost)
       setPosts([newPost, ...posts])
     } catch (error) {
       setError(error?.response?.data?.message)
@@ -27,6 +25,7 @@ const Home = () => {
     setIsLoading(true)
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/posts`, {withCredentials: true})
+      console.log(response.data)
       setPosts(response?.data)
     } catch (error) {
       console.log(error)
@@ -34,7 +33,7 @@ const Home = () => {
   }
 
   useEffect(() => {
-    getPosts
+    getPosts()
   }, [setPosts])
 
   console.log(posts)
