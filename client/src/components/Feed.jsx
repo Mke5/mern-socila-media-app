@@ -1,26 +1,19 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import { Link, useLocation } from 'react-router-dom'
 import ProfileImage from './ProfileImage'
+import { FaRegCommentDots } from 'react-icons/fa'
+import { IoMdShare } from 'react-icons/io'
 import axios from 'axios'
 import TimeAgo from 'react-timeago'
+import LikeDislikePost from './LikeDislikePost'
+import TrimText from '../helpers/TrimText'
 
-const Feed = (post) => {
-    // const [creator, setCreator] = useState({})
+const Feed = ({post}) => {
+    const [showFeedHeaderMenu, setShowFeedHeaderMenu] = useState(false)
+    const userId = useSelector(state => state?.user?.currentUser?.id)
 
-
-    // const getPostCreator = async () => {
-    //     try{
-    //         const response = await axios.get(`${import.meta.env.VITE_API_URL}/user/${post?.creator}`, {withCredentials: true})
-    //         setCreator(response?.data)
-    //     }catch(error){
-    //         console.log(error)
-    //     }
-    // }
-
-    // useEffect(() => {
-    //     getPostCreator()
-    // }, [])
-    // console.log(post.body)
+    const location = useLocation()
   return (
     <article className="feed">
         <header className="feed__header">
@@ -31,8 +24,35 @@ const Feed = (post) => {
                     <small><TimeAgo date={post?.createdAt} /></small>
                 </div>
             </Link>
-            {showFeedMenu && userId === }
+            {showFeedHeaderMenu && userId === post?.creator?._id && location.pathname.includes('users') &&
+                <menu className="feed__headermenu">
+                    <button onClick={showEditPostModal}>Edit</button>
+                    <button onClick={deletePost}>Delete</button>
+                </menu>
+            }
         </header>
+        <Link to={`/posts/${post?._id}`} className='feed__body' >
+            <p><TrimText item={post?.body} maxlength={160} /></p>
+            {
+               post.images.length > 0 && 
+                <div className="feed__images">
+                    <img src={post?.images[0]} alt="" />
+                </div>
+            }
+           
+        </Link>
+        <footer className='feed__footer'>
+            <div>
+                <LikeDislikePost post={post} />
+                <button className="feed__footer-component">
+                    <Link to={`/posts/${post?._id}`} ><FaRegCommentDots /> </Link>
+                    <small>{post?.comments?.length}</small>
+                </button>
+                <button className="feed__footer-share">
+                    <IoMdShare />
+                </button>
+            </div>
+        </footer>
     </article>
   )
 }
