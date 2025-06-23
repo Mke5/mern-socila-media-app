@@ -130,11 +130,11 @@ const getUser = async (req, res, next) => {
             return next(new HttpError('No data provided', 400))
         }
         const {id} = req.params
-        const user = await userModel.findBy(id).select('-password')
+        const user = await userModel.findById(id).select('-password')
         if(!user || user === ''){
             return next(new HttpError('User not found', 404))
         }
-        res.status(200).json({ token, user: { id: user._id, email: user.email, fullName: user.fullName } }) 
+        res.status(200).json({user: { id: user._id, email: user.email, fullName: user.fullName } }) 
     } catch (error) {
         return next(new HttpError(error.message, error.statusCode))
     }

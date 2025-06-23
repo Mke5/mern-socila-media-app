@@ -8,6 +8,7 @@ import axios from 'axios'
 import TimeAgo from 'react-timeago'
 import LikeDislikePost from './LikeDislikePost'
 import TrimText from '../helpers/TrimText'
+import BookMarkPost from './BookMarkPost'
 
 const Feed = ({post}) => {
     const [showFeedHeaderMenu, setShowFeedHeaderMenu] = useState(false)
@@ -52,6 +53,7 @@ const Feed = ({post}) => {
                     <IoMdShare />
                 </button>
             </div>
+            <BookMarkPost post={post} />
         </footer>
     </article>
   )
